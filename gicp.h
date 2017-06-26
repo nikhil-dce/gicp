@@ -34,12 +34,15 @@
   DAMAGE.
 *************************************************************/
 
-
-
 #ifndef GICP_H_
 #define GICP_H_
 
+#define FLANN_USE_CUDA
+
+// use flann instead
 #include <ANN.h>
+#include <flann/flann.hpp>
+
 #include <vector>
 #include <iostream>
 //#include <gsl/gsl.h>
@@ -52,6 +55,7 @@ namespace dgc {
     
     struct GICPPoint {
       double x, y, z;
+      int reflectivity;
       float range;
       gicp_mat_t C; // covariance matrix
     };
@@ -60,7 +64,11 @@ namespace dgc {
     public:
       GICPPointSet();
       ~GICPPointSet();
+
+      void BuildCudaKDTree();
       void BuildKDTree();
+
+      void ComputeCudaMatrices();
       void ComputeMatrices();
       
       void SavePoints(const char *filename);
@@ -82,12 +90,19 @@ namespace dgc {
       GICPPoint const& operator[](int i) const { return point_[i]; }
       
       // returns number of iterations it took to converge
+      int CudaAlignScan(GICPPointSet *scan, dgc_transform_t base_t, dgc_transform_t t, double max_match_dist, bool save_error_plot = 0);
       int AlignScan(GICPPointSet *scan, dgc_transform_t base_t, dgc_transform_t t, double max_match_dist, bool save_error_plot = 0);
+      void costPlot(GICPPointSet *scan, dgc_transform_t base_t, dgc_transform_t t, double max_match_dist);
 
     private:
       std::vector <GICPPoint> point_;
+
       ANNpointArray kdtree_points_;
       ANNkd_tree *kdtree_;
+
+      flann::Matrix<float> *flann_points_;
+      flann::KDTreeCuda3dIndex<flann::L2<float> > *flann_indexer_;
+
       int max_iteration_;
       int max_iteration_inner_;
       double epsilon_;

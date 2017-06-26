@@ -51,6 +51,28 @@ void dgc_transform_print(dgc_transform_t t, const char *str)
   }
 }
 
+void dgc_transform_print_console (dgc_transform_t t)
+{
+  int r, c;
+
+  for(r = 0; r < 4; r++) {
+    for(c = 0; c < 4; c++)
+      printf("%8.3f ", t[r][c]);
+    printf("\n");
+  }
+}
+
+void dgc_transform_print_file(dgc_transform_t t)
+{
+  int r, c;
+
+  for(r = 0; r < 4; r++) {
+    for(c = 0; c < 4; c++)
+      fprintf(stderr, "%8.3f ", t[r][c]);
+    fprintf(stderr, "\n");
+  }
+}
+
 void dgc_transform_identity(dgc_transform_t t)
 {
   int r, c;
@@ -303,6 +325,31 @@ int dgc_transform_read(dgc_transform_t t, const char *filename)
   return 0;
 }
 
+void
+loadTransform(const char *filename, dgc_transform_t t) {
+
+//	dgc_transform_identity(t);
+//	std::ifstream in(filename);
+//	if (!in) {
+//		std::stringstream err;
+//		err << "Error loading transformation " << filename << std::endl;
+//		std::cerr << err.str();
+//	}
+//
+//	std::string line;
+//	for (int i = 0; i < 4; i++) {
+//		std::getline(in,line);
+//
+//		std::istringstream sin(line);
+//		for (int j = 0; j < 4; j++) {
+//			sin >> t[i][j];
+//		}
+//	}
+//
+//	in.close();
+
+}
+
 int dgc_transform_write(dgc_transform_t t, const char *filename)
 {
   FILE *fp;
@@ -342,6 +389,21 @@ void dgc_transform_get_rotation(dgc_transform_t t, double *x, double *y,
   *y = asin(-t[2][0]);
   *z = atan2(t[1][0], t[0][0]);                 
 }
+
+void dgc_transform_get_rotation_xyz (dgc_transform_t t, double *x, double *y, double *z)
+{
+
+	double a = t[0][0];
+	double b = t[0][1];
+	double c = t[0][2];
+	double d = t[1][2];
+	double e = t[2][2];
+
+	*x = atan2(-d, e);
+	*y = asin(c);
+	*z = atan2(-b, a);
+}
+
 
 void dgc_transform_rpy(dgc_transform_t dest, dgc_transform_t src, double roll,
 		       double pitch, double yaw)

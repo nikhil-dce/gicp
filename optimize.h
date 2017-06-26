@@ -45,6 +45,7 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_multifit_nlin.h>
+#include <flann/flann.h>
 
 namespace dgc {
   namespace gicp {
@@ -62,11 +63,13 @@ namespace dgc {
     struct GICPOptData {
       GICPPointSet *p1;
       GICPPointSet *p2;
+      flann::Matrix<int> *flann_search_nn_indices;
       ANNidx *nn_indecies; // nearest point indecies
       gicp_mat_t *M;      // mahalanobis matrices for each pair
       dgc_transform_t base_t;
       int num_matches;
       bool solve_rotation;
+      bool is_cuda;
     };
     
     class GICPOptimizer {
@@ -77,16 +80,20 @@ namespace dgc {
       int Iterations() { return iter; }
       const char* Status() { return gsl_strerror(status); }
       
+      double Score(dgc_transform_t t, GICPOptData &opt_data);
       bool Optimize(dgc_transform_t t, GICPOptData &opt_data);
       bool OptimizeLM(dgc_transform_t t, GICPOptData &opt_data);
       
       void SetDebug(bool d) { debug = d; }
-      
+
       void SetMaxIterations(int iter) { max_iter = iter; }
 
       void PlotError(dgc_transform_t t, GICPOptData &opt_data, const char* filename);
+
+      void apply_state_xyz_pub(dgc_transform_t t, gsl_vector const* x);
       
     private:
+      static double cost(const gsl_vector * x, void * params);
       static double f(const gsl_vector * x, void * params);
       static void df(const gsl_vector * x, void * params, gsl_vector * g);
       static void fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
@@ -94,7 +101,8 @@ namespace dgc {
       static void compute_dr(gsl_vector const* x, gsl_matrix const* gsl_temp_mat_r, gsl_vector *g);
       static double mat_inner_prod(gsl_matrix const* mat1, gsl_matrix const* mat2);
       static void apply_state(dgc_transform_t t, gsl_vector const* x);
-      
+      static void apply_state_xyz(dgc_transform_t t, gsl_vector const* x);
+
       gsl_multimin_fdfminimizer *gsl_minimizer;
       gsl_vector *x;
       int max_iter;

@@ -13,6 +13,8 @@ typedef double dgc_transform_t[4][4];
       @param t - transform to be printed 
       &param str - name of transform, which will be printed above matrix */
 
+void dgc_transform_print_console (dgc_transform_t t);
+
 void dgc_transform_print(dgc_transform_t t, const char *str);
 
   /** Initializes a transform as the identity transform */
@@ -60,6 +62,10 @@ void dgc_transform_copy(dgc_transform_t dest, dgc_transform_t src);
 
   /** Read a transform from file */
 
+
+void
+loadTransform(const char *filename, dgc_transform_t t);
+
 int dgc_transform_read(dgc_transform_t t, const char *filename);
 
   /** Write a transform from file */
@@ -76,6 +82,9 @@ void dgc_transform_get_translation(dgc_transform_t t, double *x, double *y,
 				   double *z);
 
   /** Get rotation */
+
+void dgc_transform_get_rotation_xyz (dgc_transform_t t, double *x, double *y, double *z);
+
 
 void dgc_transform_get_rotation(dgc_transform_t t, double *x, double *y,
 				double *z);
